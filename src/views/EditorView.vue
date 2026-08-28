@@ -7,6 +7,7 @@ import StandList from '../components/StandList.vue'
 import { normalizeAngle, pxPerMeter } from '../geometry'
 import { newStand, type Placement, type Point, type VehicleSide } from '../model'
 import { useImageUrl } from '../store/images'
+import { exportProject } from '../store/transfer'
 import { useProjects } from '../store/projects'
 
 const props = defineProps<{ id: string }>()
@@ -42,6 +43,15 @@ function placeAt(id: string, at: Point) {
 
 function place(id: string) {
   placeAt(id, map.value?.center() ?? { x: 0, y: 0 })
+}
+
+async function onExport() {
+  if (!project.value) return
+  try {
+    await exportProject(project.value)
+  } catch (e) {
+    alert(e instanceof Error ? e.message : 'Export fehlgeschlagen.')
+  }
 }
 
 function updateVehicleSide(id: string, side: VehicleSide) {
@@ -94,6 +104,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         <RouterLink to="/" class="pointer-events-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white">← Projekte</RouterLink>
         <h1 class="pointer-events-auto rounded bg-white/90 px-3 py-1 font-semibold shadow">{{ project.name }}</h1>
         <button type="button" class="pointer-events-auto ml-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white" @click="map?.fit()">Einpassen</button>
+        <button type="button" class="pointer-events-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white" @click="onExport">Exportieren</button>
       </header>
       <MapCanvas
         ref="map"
