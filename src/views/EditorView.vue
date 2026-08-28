@@ -170,8 +170,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="project" class="grid h-screen grid-cols-3 overflow-hidden print:block print:h-auto print:overflow-visible">
-    <div class="relative col-span-2 min-h-0 h-full print:flex print:h-[calc(100vh-2cm)] print:flex-col">
+  <!-- map column: DIN A4 landscape (√2 : 1) at full height when the window is wide enough, otherwise whatever is left next to the sidebar's minimum width -->
+  <div v-if="project" class="grid h-screen grid-cols-[minmax(20rem,calc(100vh*1.41421))_minmax(22rem,1fr)] overflow-hidden print:block print:h-auto print:overflow-visible">
+    <div class="relative min-h-0 h-full print:flex print:h-[calc(100vh-2cm)] print:flex-col">
       <h1 class="mb-3 hidden text-center text-2xl font-bold print:block">{{ project.name }}</h1>
       <header class="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center gap-3 p-3 print:hidden">
         <RouterLink to="/" class="pointer-events-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white">← Projekte</RouterLink>

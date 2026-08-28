@@ -82,8 +82,8 @@ onBeforeUnmount(() => {
     </form>
   </main>
 
-  <div v-else-if="imageSize" class="grid h-screen grid-cols-3 overflow-hidden">
-    <div class="col-span-2 min-h-0 h-full">
+  <div v-else-if="imageSize" class="grid h-screen grid-cols-[minmax(20rem,calc(100vh*1.41421))_minmax(22rem,1fr)] overflow-hidden">
+    <div class="min-h-0 h-full">
       <MapCanvas :image-url="imageUrl" :image-size="imageSize" mode="calibrate" :calibration="calibration" @update:calibration="calibration = $event" />
     </div>
     <aside class="flex h-full min-h-0 flex-col overflow-y-auto border-l border-neutral-200 bg-neutral-50 p-4">
