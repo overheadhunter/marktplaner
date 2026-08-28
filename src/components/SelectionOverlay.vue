@@ -2,7 +2,7 @@
 import type { Stand } from '../model'
 
 defineProps<{ stand: Stand }>()
-const emit = defineEmits<{ close: [] }>()
+const emit = defineEmits<{ close: []; place: []; unplace: [] }>()
 </script>
 
 <template>
@@ -16,6 +16,10 @@ const emit = defineEmits<{ close: [] }>()
           <p v-else class="mt-2 text-sm text-neutral-400 italic">Keine Notizen</p>
         </div>
         <button type="button" class="rounded px-2 text-neutral-500 hover:bg-neutral-100" title="Auswahl aufheben (Esc)" @click="emit('close')">✕</button>
+      </div>
+      <div class="mt-3 flex gap-2 text-sm">
+        <button v-if="stand.placement" type="button" class="rounded bg-neutral-200 px-3 py-1 hover:bg-neutral-300" @click="emit('unplace')">Von Karte entfernen</button>
+        <button v-else type="button" class="rounded bg-sky-600 px-3 py-1 text-white hover:bg-sky-700" @click="emit('place')">Auf Karte platzieren</button>
       </div>
     </div>
   </div>

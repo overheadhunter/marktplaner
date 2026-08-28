@@ -6,7 +6,6 @@ const props = defineProps<{ stand: Stand; selected: boolean }>()
 const emit = defineEmits<{
   select: []
   place: []
-  unplace: []
   delete: []
 }>()
 
@@ -34,7 +33,7 @@ function num(e: Event): number {
   <li
     ref="root"
     draggable="true"
-    class="rounded-lg border p-3 shadow-sm transition-colors"
+    class="rounded-md border px-2 py-1 transition-colors"
     :class="selected ? 'border-sky-500 bg-sky-50 ring-2 ring-sky-200' : 'border-neutral-200 bg-white hover:border-neutral-300'"
     @click="emit('select')"
     @dragstart="onDragStart"
@@ -44,41 +43,43 @@ function num(e: Event): number {
         v-model.trim="stand.name"
         type="text"
         placeholder="Name"
-        class="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1 py-0.5 font-medium hover:border-neutral-300 focus:border-sky-500 focus:outline-none"
+        class="min-w-16 max-w-full shrink rounded border border-transparent bg-transparent px-1 py-0.5 text-sm font-medium field-sizing-content hover:border-neutral-300 focus:border-sky-500 focus:outline-none"
       />
       <span
-        class="shrink-0 rounded-full px-2 py-0.5 text-xs"
+        class="shrink-0 rounded-full px-1.5 py-px text-[10px] leading-4"
         :class="stand.placement ? 'bg-emerald-100 text-emerald-800' : 'bg-neutral-100 text-neutral-500'"
       >
         {{ stand.placement ? 'platziert' : 'nicht platziert' }}
       </span>
+      <button
+        v-if="selected"
+        type="button"
+        class="ml-auto shrink-0 rounded px-1 text-sm leading-none text-neutral-400 hover:bg-red-50 hover:text-red-600"
+        title="Marktstand löschen"
+        @click.stop="emit('delete')"
+      >
+        ✕
+      </button>
     </div>
 
-    <textarea
-      v-model="stand.notes"
-      rows="2"
-      placeholder="Notizen"
-      class="mt-2 w-full resize-y rounded border border-neutral-200 px-2 py-1 text-sm focus:border-sky-500 focus:outline-none"
-    />
+    <template v-if="selected">
+      <textarea
+        v-model="stand.notes"
+        rows="2"
+        placeholder="Notizen"
+        class="mt-2 w-full resize-y rounded border border-neutral-200 bg-white px-2 py-1 text-sm focus:border-sky-500 focus:outline-none"
+      />
 
-    <div class="mt-2 flex items-center gap-2 text-sm">
-      <label class="flex items-center gap-1">
-        <span class="text-neutral-500">Breite</span>
-        <input :value="stand.width" type="number" min="0.01" step="0.01" class="w-20 rounded border border-neutral-200 px-1 py-0.5 text-right" @change="stand.width = num($event)" />
+      <div class="mt-2 flex items-center gap-1 text-sm">
+        <span class="mr-1 text-neutral-500">Standgröße:</span>
+        <input :value="stand.width" type="number" min="0.01" step="0.01" title="Breite" class="w-20 rounded border border-neutral-200 bg-white px-1 py-0.5 text-right" @change="stand.width = num($event)" />
+        <span class="text-neutral-400">×</span>
+        <input :value="stand.depth" type="number" min="0.01" step="0.01" title="Tiefe" class="w-20 rounded border border-neutral-200 bg-white px-1 py-0.5 text-right" @change="stand.depth = num($event)" />
         <span class="text-neutral-500">m</span>
-      </label>
-      <span class="text-neutral-400">×</span>
-      <label class="flex items-center gap-1">
-        <span class="text-neutral-500">Tiefe</span>
-        <input :value="stand.depth" type="number" min="0.01" step="0.01" class="w-20 rounded border border-neutral-200 px-1 py-0.5 text-right" @change="stand.depth = num($event)" />
-        <span class="text-neutral-500">m</span>
-      </label>
-    </div>
-
-    <div class="mt-3 flex flex-wrap gap-2 text-sm">
-      <button v-if="!stand.placement" type="button" class="rounded bg-sky-600 px-2 py-1 text-white hover:bg-sky-700" @click.stop="emit('place')">Platzieren</button>
-      <button v-else type="button" class="rounded bg-neutral-200 px-2 py-1 hover:bg-neutral-300" @click.stop="emit('unplace')">Von Karte entfernen</button>
-      <button type="button" class="ml-auto rounded px-2 py-1 text-red-600 hover:bg-red-50" @click.stop="emit('delete')">Löschen</button>
-    </div>
+      </div>
+      <div v-if="!stand.placement" class="mt-2 flex text-sm">
+        <button type="button" class="rounded bg-sky-600 px-3 py-1 text-white hover:bg-sky-700" @click.stop="emit('place')">Platzieren</button>
+      </div>
+    </template>
   </li>
 </template>

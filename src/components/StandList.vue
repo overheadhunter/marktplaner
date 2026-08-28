@@ -7,13 +7,12 @@ const emit = defineEmits<{
   select: [id: string | null]
   add: []
   place: [id: string]
-  unplace: [id: string]
   delete: [id: string]
 }>()
 </script>
 
 <template>
-  <aside class="flex h-full flex-col border-l border-neutral-200 bg-neutral-50">
+  <aside class="flex h-full min-h-0 flex-col border-l border-neutral-200 bg-neutral-50">
     <div class="flex items-center gap-3 border-b border-neutral-200 px-4 py-3">
       <h2 class="text-lg font-semibold">Marktstände</h2>
       <span class="text-sm text-neutral-500">{{ project.stands.length }}</span>
@@ -24,7 +23,7 @@ const emit = defineEmits<{
       Namen auf Karte anzeigen
     </label>
     <p class="px-4 py-2 text-xs text-neutral-500">Stände auf die Karte ziehen oder „Platzieren“ klicken. Auf der Karte: ziehen zum Verschieben, Griff zum Drehen (⇧ rastet in 15°-Schritten).</p>
-    <ul class="flex-1 space-y-2 overflow-y-auto px-4 pb-4">
+    <ul class="min-h-0 flex-1 space-y-1 overflow-y-auto px-4 pb-4">
       <StandListItem
         v-for="s in project.stands"
         :key="s.id"
@@ -32,7 +31,6 @@ const emit = defineEmits<{
         :selected="s.id === selectedId"
         @select="emit('select', s.id)"
         @place="emit('place', s.id)"
-        @unplace="emit('unplace', s.id)"
         @delete="emit('delete', s.id)"
       />
       <li v-if="project.stands.length === 0" class="py-8 text-center text-sm text-neutral-400">Noch keine Marktstände.</li>

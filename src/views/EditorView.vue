@@ -83,8 +83,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </script>
 
 <template>
-  <div v-if="project" class="grid h-screen grid-cols-3">
-    <div class="relative col-span-2 h-full">
+  <div v-if="project" class="grid h-screen grid-cols-3 overflow-hidden">
+    <div class="relative col-span-2 min-h-0 h-full">
       <header class="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center gap-3 p-3">
         <RouterLink to="/" class="pointer-events-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white">← Projekte</RouterLink>
         <h1 class="pointer-events-auto rounded bg-white/90 px-3 py-1 font-semibold shadow">{{ project.name }}</h1>
@@ -102,8 +102,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         @update:placement="updatePlacement"
         @drop-stand="placeAt"
       />
-      <SelectionOverlay v-if="selectedStand" :stand="selectedStand" @close="selectedId = null" />
+      <SelectionOverlay v-if="selectedStand" :stand="selectedStand" @close="selectedId = null" @place="place(selectedStand.id)" @unplace="unplace(selectedStand.id)" />
     </div>
-    <StandList :project="project" :selected-id="selectedId" @select="selectedId = $event" @add="addStand" @place="place" @unplace="unplace" @delete="deleteStand" />
+    <StandList :project="project" :selected-id="selectedId" @select="selectedId = $event" @add="addStand" @place="place" @delete="deleteStand" />
   </div>
 </template>

@@ -82,11 +82,11 @@ onBeforeUnmount(() => {
     </form>
   </main>
 
-  <div v-else-if="imageSize" class="grid h-screen grid-cols-3">
-    <div class="col-span-2 h-full">
+  <div v-else-if="imageSize" class="grid h-screen grid-cols-3 overflow-hidden">
+    <div class="col-span-2 min-h-0 h-full">
       <MapCanvas :image-url="imageUrl" :image-size="imageSize" mode="calibrate" :calibration="calibration" @update:calibration="calibration = $event" />
     </div>
-    <aside class="flex h-full flex-col border-l border-neutral-200 bg-neutral-50 p-4">
+    <aside class="flex h-full min-h-0 flex-col overflow-y-auto border-l border-neutral-200 bg-neutral-50 p-4">
       <h1 class="text-xl font-bold">{{ name }}</h1>
       <h2 class="mt-4 mb-3 font-semibold">Maßstab festlegen</h2>
       <CalibrationPanel :calibration="calibration" :meters="meters" @update:meters="meters = $event" @reset="calibration = {}; meters = 0" />
