@@ -6,6 +6,8 @@ defineProps<{ project: Project; selectedId: string | null; hoveredId: string | n
 const emit = defineEmits<{
   select: [id: string | null]
   hover: [id: string | null]
+  drag: [id: string, at: { x: number; y: number }]
+  dragend: [id: string, at: { x: number; y: number } | null]
   add: []
   place: [id: string]
   delete: [id: string]
@@ -29,6 +31,8 @@ const emit = defineEmits<{
         :hovered="s.id === hoveredId"
         @select="emit('select', s.id)"
         @hover="emit('hover', $event ? s.id : null)"
+        @drag="emit('drag', s.id, $event)"
+        @dragend="emit('dragend', s.id, $event)"
         @place="emit('place', s.id)"
         @delete="emit('delete', s.id)"
       />

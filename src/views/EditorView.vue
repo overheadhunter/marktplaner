@@ -46,6 +46,20 @@ function place(id: string) {
   placeAt(id, map.value?.center() ?? { x: 0, y: 0 })
 }
 
+// drag from the list: name chip follows the cursor outside the map, a true-to-scale ghost inside it
+const drag = ref<{ id: string; x: number; y: number; overMap: boolean } | null>(null)
+const dragStand = computed(() => (drag.value ? stand(drag.value.id) : undefined))
+const ghost = computed(() => (drag.value?.overMap && dragStand.value ? { stand: dragStand.value, clientX: drag.value.x, clientY: drag.value.y } : null))
+
+function onDrag(id: string, at: { x: number; y: number }) {
+  drag.value = { id, x: at.x, y: at.y, overMap: map.value?.containsClient(at.x, at.y) ?? false }
+}
+
+function onDragEnd(id: string, at: { x: number; y: number } | null) {
+  if (at && map.value?.containsClient(at.x, at.y)) placeAt(id, map.value.clientToImage(at.x, at.y))
+  drag.value = null
+}
+
 async function onExport() {
   if (!project.value) return
   try {
@@ -124,10 +138,28 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         @hover="hoveredId = $event"
         @update:placement="updatePlacement"
         @update:vehicle-side="updateVehicleSide"
-        @drop-stand="placeAt"
+        :ghost="ghost"
       />
+      <div
+        v-if="drag && !drag.overMap && dragStand"
+        class="pointer-events-none fixed z-20 -translate-x-1/2 -translate-y-1/2 rounded bg-white px-2 py-1 text-sm font-medium shadow-lg ring-1 ring-neutral-300"
+        :style="{ left: `${drag.x}px`, top: `${drag.y}px` }"
+      >
+        {{ dragStand.name || 'Unbenannt' }}
+      </div>
       <SelectionOverlay v-if="selectedStand" :stand="selectedStand" @close="selectedId = null" @place="place(selectedStand.id)" @unplace="unplace(selectedStand.id)" />
     </div>
-    <StandList :project="project" :selected-id="selectedId" :hovered-id="hoveredId" @select="selectedId = $event" @hover="hoveredId = $event" @add="addStand" @place="place" @delete="deleteStand" />
+    <StandList
+      :project="project"
+      :selected-id="selectedId"
+      :hovered-id="hoveredId"
+      @select="selectedId = $event"
+      @hover="hoveredId = $event"
+      @drag="onDrag"
+      @dragend="onDragEnd"
+      @add="addStand"
+      @place="place"
+      @delete="deleteStand"
+    />
   </div>
 </template>

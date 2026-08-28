@@ -20,8 +20,10 @@ const props = withDefaults(
     hoveredId?: string | null
     showLabels?: boolean
     calibration?: Calibration
+    /** stand being dragged in from the list, rendered translucently at the given client position */
+    ghost?: { stand: Stand; clientX: number; clientY: number } | null
   }>(),
-  { mode: 'edit', stands: () => [], pxPerMeter: 1, selectedId: null, hoveredId: null, showLabels: true, calibration: () => ({}) },
+  { mode: 'edit', stands: () => [], pxPerMeter: 1, selectedId: null, hoveredId: null, showLabels: true, calibration: () => ({}), ghost: null },
 )
 
 const emit = defineEmits<{
@@ -29,7 +31,6 @@ const emit = defineEmits<{
   hover: [id: string | null]
   'update:placement': [id: string, placement: Placement]
   'update:vehicle-side': [id: string, side: VehicleSide]
-  'drop-stand': [id: string, at: Point]
   'update:calibration': [calibration: Calibration]
 }>()
 
@@ -37,6 +38,19 @@ const svg = ref<SVGSVGElement>()
 const viewport = useViewport(svg)
 
 const placedStands = computed(() => props.stands.filter((s): s is Stand & { placement: Placement } => s.placement !== null))
+
+const ghostStand = computed<(Stand & { placement: Placement }) | null>(() => {
+  const g = props.ghost
+  if (!g) return null
+  const at = viewport.clientToImage(g.clientX, g.clientY)
+  return { ...g.stand, placement: { x: at.x, y: at.y, angle: g.stand.placement?.angle ?? 0 } }
+})
+
+/** Whether the given client position lies within the map element. */
+function containsClient(clientX: number, clientY: number): boolean {
+  const r = svg.value?.getBoundingClientRect()
+  return !!r && clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom
+}
 
 const markerRadius = computed(() => 7 / viewport.scale.value)
 
@@ -104,13 +118,7 @@ function onMarkerPointerDown(e: PointerEvent, which: 'a' | 'b') {
   el.addEventListener('pointercancel', onUp)
 }
 
-function onDrop(e: DragEvent) {
-  const id = e.dataTransfer?.getData('application/x-marktplaner-stand')
-  if (!id) return
-  emit('drop-stand', id, viewport.clientToImage(e.clientX, e.clientY))
-}
-
-defineExpose({ center: viewport.center, fit: () => viewport.fit(props.imageSize.width, props.imageSize.height) })
+defineExpose({ center: viewport.center, fit: () => viewport.fit(props.imageSize.width, props.imageSize.height), clientToImage: viewport.clientToImage, containsClient })
 </script>
 
 <template>
@@ -120,8 +128,6 @@ defineExpose({ center: viewport.center, fit: () => viewport.fit(props.imageSize.
     :viewBox="viewport.viewBoxString.value"
     @wheel.prevent="onWheel"
     @pointerdown="onBackgroundPointerDown"
-    @dragover.prevent
-    @drop.prevent="onDrop"
   >
     <image v-if="imageUrl" :href="imageUrl" :width="imageSize.width" :height="imageSize.height" x="0" y="0" />
     <rect v-else :width="imageSize.width" :height="imageSize.height" class="fill-neutral-300" />
@@ -141,6 +147,17 @@ defineExpose({ center: viewport.center, fit: () => viewport.fit(props.imageSize.
         @hover="emit('hover', $event)"
         @update:placement="(id, p) => emit('update:placement', id, p)"
         @update:vehicle-side="(id, side) => emit('update:vehicle-side', id, side)"
+      />
+      <StandShape
+        v-if="ghostStand"
+        :stand="ghostStand"
+        :px-per-meter="pxPerMeter"
+        :scale="viewport.scale.value"
+        :selected="false"
+        :hovered="true"
+        :show-label="showLabels"
+        :to-image="viewport.clientToImage"
+        class="pointer-events-none opacity-60"
       />
     </template>
 
