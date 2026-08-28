@@ -14,6 +14,8 @@ const props = withDefaults(
     imageUrl?: string
     imageSize: { width: number; height: number }
     mode?: 'edit' | 'calibrate'
+    /** show the whole image regardless of the current pan/zoom (used for printing) */
+    fitAll?: boolean
     stands?: Stand[]
     pxPerMeter?: number
     selectedId?: string | null
@@ -124,8 +126,8 @@ defineExpose({ center: viewport.center, fit: () => viewport.fit(props.imageSize.
 <template>
   <svg
     ref="svg"
-    class="h-full w-full touch-none bg-neutral-200"
-    :viewBox="viewport.viewBoxString.value"
+    class="h-full w-full touch-none bg-neutral-200 print:bg-white"
+    :viewBox="fitAll ? `0 0 ${imageSize.width} ${imageSize.height}` : viewport.viewBoxString.value"
     @wheel.prevent="onWheel"
     @pointerdown="onBackgroundPointerDown"
   >

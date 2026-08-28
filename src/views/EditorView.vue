@@ -114,14 +114,45 @@ function onKey(e: KeyboardEvent) {
   else return
   e.preventDefault()
 }
-onMounted(() => window.addEventListener('keydown', onKey))
-onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
+// print layout: whole map, no selection/handles, page orientation matching the image
+const printing = ref(false)
+let pageStyle: HTMLStyleElement | undefined
+function onBeforePrint() {
+  printing.value = true
+  const img = project.value?.image
+  if (img && !pageStyle) {
+    pageStyle = document.createElement('style')
+    pageStyle.textContent = `@page { size: ${img.width >= img.height ? 'landscape' : 'portrait'}; margin: 1cm; }`
+    document.head.appendChild(pageStyle)
+  }
+}
+function print() {
+  window.print()
+}
+function onAfterPrint() {
+  printing.value = false
+  pageStyle?.remove()
+  pageStyle = undefined
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKey)
+  window.addEventListener('beforeprint', onBeforePrint)
+  window.addEventListener('afterprint', onAfterPrint)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKey)
+  window.removeEventListener('beforeprint', onBeforePrint)
+  window.removeEventListener('afterprint', onAfterPrint)
+  onAfterPrint()
+})
 </script>
 
 <template>
-  <div v-if="project" class="grid h-screen grid-cols-3 overflow-hidden">
-    <div class="relative col-span-2 min-h-0 h-full">
-      <header class="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center gap-3 p-3">
+  <div v-if="project" class="grid h-screen grid-cols-3 overflow-hidden print:block print:h-auto print:overflow-visible">
+    <div class="relative col-span-2 min-h-0 h-full print:flex print:h-[calc(100vh-2cm)] print:flex-col">
+      <h1 class="mb-3 hidden text-center text-2xl font-bold print:block">{{ project.name }}</h1>
+      <header class="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center gap-3 p-3 print:hidden">
         <RouterLink to="/" class="pointer-events-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white">← Projekte</RouterLink>
         <h1 class="pointer-events-auto rounded bg-white/90 px-3 py-1 font-semibold shadow">{{ project.name }}</h1>
         <label class="pointer-events-auto ml-auto flex items-center gap-2 rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white">
@@ -130,6 +161,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         </label>
         <button type="button" class="pointer-events-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white" @click="map?.fit()">Einpassen</button>
         <button type="button" class="pointer-events-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white" @click="onExport">Exportieren</button>
+        <button type="button" class="pointer-events-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white" @click="print()">Drucken</button>
       </header>
       <MapCanvas
         ref="map"
@@ -137,9 +169,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         :image-size="project.image"
         :stands="project.stands"
         :px-per-meter="ppm"
-        :selected-id="selectedId"
-        :hovered-id="hoveredId"
+        :selected-id="printing ? null : selectedId"
+        :hovered-id="printing ? null : hoveredId"
         :show-labels="project.showLabels"
+        :fit-all="printing"
+        class="print:min-h-0 print:flex-1"
         @select="selectedId = $event"
         @hover="hoveredId = $event"
         @update:placement="updatePlacement"
@@ -153,9 +187,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
       >
         {{ dragStand.name || 'Unbenannt' }}
       </div>
-      <SelectionOverlay v-if="selectedStand" :stand="selectedStand" @close="selectedId = null" @place="place(selectedStand.id)" @unplace="unplace(selectedStand.id)" />
+      <SelectionOverlay v-if="selectedStand" :stand="selectedStand" class="print:hidden" @close="selectedId = null" @place="place(selectedStand.id)" @unplace="unplace(selectedStand.id)" />
     </div>
     <StandList
+      class="print:hidden"
       :project="project"
       :selected-id="selectedId"
       :hovered-id="hoveredId"
