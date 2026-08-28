@@ -2,9 +2,10 @@
 import type { Project } from '../model'
 import StandListItem from './StandListItem.vue'
 
-defineProps<{ project: Project; selectedId: string | null }>()
+defineProps<{ project: Project; selectedId: string | null; hoveredId: string | null }>()
 const emit = defineEmits<{
   select: [id: string | null]
+  hover: [id: string | null]
   add: []
   place: [id: string]
   delete: [id: string]
@@ -25,7 +26,9 @@ const emit = defineEmits<{
         :key="s.id"
         :stand="s"
         :selected="s.id === selectedId"
+        :hovered="s.id === hoveredId"
         @select="emit('select', s.id)"
+        @hover="emit('hover', $event ? s.id : null)"
         @place="emit('place', s.id)"
         @delete="emit('delete', s.id)"
       />

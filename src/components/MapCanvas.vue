@@ -17,14 +17,16 @@ const props = withDefaults(
     stands?: Stand[]
     pxPerMeter?: number
     selectedId?: string | null
+    hoveredId?: string | null
     showLabels?: boolean
     calibration?: Calibration
   }>(),
-  { mode: 'edit', stands: () => [], pxPerMeter: 1, selectedId: null, showLabels: true, calibration: () => ({}) },
+  { mode: 'edit', stands: () => [], pxPerMeter: 1, selectedId: null, hoveredId: null, showLabels: true, calibration: () => ({}) },
 )
 
 const emit = defineEmits<{
   select: [id: string | null]
+  hover: [id: string | null]
   'update:placement': [id: string, placement: Placement]
   'update:vehicle-side': [id: string, side: VehicleSide]
   'drop-stand': [id: string, at: Point]
@@ -132,9 +134,11 @@ defineExpose({ center: viewport.center, fit: () => viewport.fit(props.imageSize.
         :px-per-meter="pxPerMeter"
         :scale="viewport.scale.value"
         :selected="s.id === selectedId"
+        :hovered="s.id === hoveredId"
         :show-label="showLabels"
         :to-image="viewport.clientToImage"
         @select="emit('select', $event)"
+        @hover="emit('hover', $event)"
         @update:placement="(id, p) => emit('update:placement', id, p)"
         @update:vehicle-side="(id, side) => emit('update:vehicle-side', id, side)"
       />

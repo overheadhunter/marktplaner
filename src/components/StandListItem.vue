@@ -6,9 +6,10 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { UTILITIES, activeUtilities } from '../utilities'
 import type { Utilities } from '../model'
 
-const props = defineProps<{ stand: Stand; selected: boolean }>()
+const props = defineProps<{ stand: Stand; selected: boolean; hovered: boolean }>()
 const emit = defineEmits<{
   select: []
+  hover: [hovering: boolean]
   place: []
   delete: []
 }>()
@@ -54,9 +55,11 @@ function setVehicle(key: 'width' | 'depth', e: Event) {
     ref="root"
     draggable="true"
     class="rounded-md border px-2 py-1 transition-colors"
-    :class="selected ? 'border-sky-500 bg-sky-50 ring-2 ring-sky-200' : 'border-neutral-200 bg-white hover:border-neutral-300'"
+    :class="selected ? 'border-sky-500 bg-sky-50 ring-2 ring-sky-200' : hovered ? 'border-neutral-400 bg-neutral-100' : 'border-neutral-200 bg-white'"
     @click="emit('select')"
     @dragstart="onDragStart"
+    @mouseenter="emit('hover', true)"
+    @mouseleave="emit('hover', false)"
   >
     <div class="flex items-center gap-2">
       <span class="size-3 shrink-0 rounded-full" :class="standClasses(stand.color ?? DEFAULT_COLOR, false).swatch" />
@@ -66,12 +69,7 @@ function setVehicle(key: 'width' | 'depth', e: Event) {
         placeholder="Name"
         class="min-w-16 max-w-full shrink rounded border border-transparent bg-transparent px-1 py-0.5 text-sm font-medium field-sizing-content hover:border-neutral-300 focus:border-sky-500 focus:outline-none"
       />
-      <span
-        class="shrink-0 rounded-full px-1.5 py-px text-[10px] leading-4"
-        :class="stand.placement ? 'bg-emerald-100 text-emerald-800' : 'bg-neutral-100 text-neutral-500'"
-      >
-        {{ stand.placement ? 'platziert' : 'nicht platziert' }}
-      </span>
+      <span v-if="!stand.placement" class="shrink-0 rounded-full bg-amber-100 px-1.5 py-px text-[10px] leading-4 text-amber-800">unplatziert</span>
       <span v-if="activeUtilities(stand).length" class="flex shrink-0 items-center gap-1">
         <FontAwesomeIcon v-for="u in activeUtilities(stand)" :key="u.key" :icon="u.icon" :title="u.label" class="size-3" :class="u.cls" />
       </span>

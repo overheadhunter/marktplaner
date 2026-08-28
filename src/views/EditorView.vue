@@ -22,6 +22,7 @@ const ppm = computed(() => (project.value ? pxPerMeter(project.value.reference) 
 
 const map = ref<InstanceType<typeof MapCanvas>>()
 const selectedId = ref<string | null>(null)
+const hoveredId = ref<string | null>(null)
 const selectedStand = computed(() => project.value?.stands.find((s) => s.id === selectedId.value) ?? null)
 
 function stand(id: string) {
@@ -117,14 +118,16 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         :stands="project.stands"
         :px-per-meter="ppm"
         :selected-id="selectedId"
+        :hovered-id="hoveredId"
         :show-labels="project.showLabels"
         @select="selectedId = $event"
+        @hover="hoveredId = $event"
         @update:placement="updatePlacement"
         @update:vehicle-side="updateVehicleSide"
         @drop-stand="placeAt"
       />
       <SelectionOverlay v-if="selectedStand" :stand="selectedStand" @close="selectedId = null" @place="place(selectedStand.id)" @unplace="unplace(selectedStand.id)" />
     </div>
-    <StandList :project="project" :selected-id="selectedId" @select="selectedId = $event" @add="addStand" @place="place" @delete="deleteStand" />
+    <StandList :project="project" :selected-id="selectedId" :hovered-id="hoveredId" @select="selectedId = $event" @hover="hoveredId = $event" @add="addStand" @place="place" @delete="deleteStand" />
   </div>
 </template>

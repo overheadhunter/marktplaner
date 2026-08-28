@@ -12,17 +12,20 @@ const props = defineProps<{
   /** screen px per image px, used to keep handles a constant on-screen size */
   scale: number
   selected: boolean
+  hovered: boolean
   showLabel: boolean
   toImage: (clientX: number, clientY: number) => Point
 }>()
 
 const emit = defineEmits<{
   select: [id: string]
+  hover: [id: string | null]
   'update:placement': [id: string, placement: Placement]
   'update:vehicle-side': [id: string, side: VehicleSide]
 }>()
 
-const cls = computed(() => standClasses(props.stand.color ?? DEFAULT_COLOR, props.selected))
+// hover uses the stronger "selected" shades as well, only the handles stay exclusive to the selection
+const cls = computed(() => standClasses(props.stand.color ?? DEFAULT_COLOR, props.selected || props.hovered))
 
 const w = computed(() => props.stand.width * props.pxPerMeter)
 const d = computed(() => props.stand.depth * props.pxPerMeter)
@@ -116,14 +119,14 @@ function onRotatePointerDown(e: PointerEvent) {
 </script>
 
 <template>
-  <g :transform="transform" class="select-none">
+  <g :transform="transform" class="select-none" @pointerenter="emit('hover', stand.id)" @pointerleave="emit('hover', null)">
     <rect
       :x="-w / 2"
       :y="-d / 2"
       :width="w"
       :height="d"
       :class="[cls.fill, cls.stroke]"
-      :stroke-width="selected ? 3 : 2"
+      :stroke-width="selected || hovered ? 3 : 2"
       vector-effect="non-scaling-stroke"
       class="cursor-move"
       @pointerdown="onMovePointerDown"
