@@ -100,7 +100,7 @@ function setVehicle(key: 'width' | 'depth', e: Event) {
         v-if="selected"
         type="button"
         class="ml-auto shrink-0 rounded px-1 text-sm leading-none text-neutral-400 hover:bg-red-50 hover:text-red-600"
-        title="Marktstand löschen"
+        :title="stand.placement ? 'Von Karte entfernen' : 'Marktstand löschen'"
         @click.stop="emit('delete')"
       >
         ✕

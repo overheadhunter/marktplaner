@@ -84,11 +84,17 @@ function updatePlacement(id: string, placement: Placement) {
   if (s) s.placement = placement
 }
 
+// first "x" only takes a placed stand off the map; a second one on the now unplaced stand deletes it after confirmation
 function deleteStand(id: string) {
   const p = project.value
   if (!p) return
   const s = stand(id)
-  if (!s || !confirm(`Marktstand „${s.name}“ endgültig löschen?`)) return
+  if (!s) return
+  if (s.placement) {
+    s.placement = null
+    return
+  }
+  if (!confirm(`Marktstand „${s.name}“ endgültig löschen?`)) return
   p.stands.splice(p.stands.indexOf(s), 1)
   if (selectedId.value === id) selectedId.value = null
 }
