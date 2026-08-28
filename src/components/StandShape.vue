@@ -9,11 +9,12 @@ import { activeUtilities } from '../utilities'
 const props = defineProps<{
   stand: Stand & { placement: Placement }
   pxPerMeter: number
-  /** screen px per image px, used to keep handles a constant on-screen size */
+  /** screen px per image px, used to keep strokes, handles and icons a constant on-screen size (no `vector-effect`, which some browsers mis-scale when printing) */
   scale: number
   selected: boolean
   hovered: boolean
-  showLabel: boolean
+  /** text printed inside the stand (name or number); nothing when empty */
+  label?: string
   toImage: (clientX: number, clientY: number) => Point
 }>()
 
@@ -60,7 +61,7 @@ const transform = computed(() => `translate(${props.stand.placement.x} ${props.s
 
 // label rotation relative to the already rotated group
 const labelRotation = computed(() => labelAngle(props.stand.placement.angle, props.stand.width, props.stand.depth) - props.stand.placement.angle)
-const fontSize = computed(() => labelFontSize(props.stand.name, Math.max(w.value, d.value), Math.min(w.value, d.value)))
+const fontSize = computed(() => labelFontSize(props.label ?? '', Math.max(w.value, d.value), Math.min(w.value, d.value)))
 
 // utility icons in the rect's top-left corner: constant on-screen size, but never larger than ~40% of the shorter side
 const utilityIcons = computed(() => {
@@ -126,19 +127,18 @@ function onRotatePointerDown(e: PointerEvent) {
       :width="w"
       :height="d"
       :class="[cls.fill, cls.stroke]"
-      :stroke-width="selected || hovered ? 3 : 2"
-      vector-effect="non-scaling-stroke"
+      :stroke-width="(selected || hovered ? 3 : 2) / scale"
       class="cursor-move"
       @pointerdown="onMovePointerDown"
     />
     <text
-      v-if="showLabel && fontSize > 0"
+      v-if="label && fontSize > 0"
       :transform="`rotate(${labelRotation})`"
       :font-size="fontSize"
       text-anchor="middle"
       dominant-baseline="central"
       class="pointer-events-none fill-black"
-    >{{ stand.name }}</text>
+    >{{ label }}</text>
     <FontAwesomeIcon
       v-for="u in utilityIcons"
       :key="u.key"
@@ -157,14 +157,13 @@ function onRotatePointerDown(e: PointerEvent) {
         :width="vehicle.w"
         :height="vehicle.d"
         :class="[cls.vehicleFill, cls.vehicleStroke]"
-        stroke-width="2"
-        stroke-dasharray="6 4"
-        vector-effect="non-scaling-stroke"
+        :stroke-width="2 / scale"
+        :stroke-dasharray="`${6 / scale} ${4 / scale}`"
         class="cursor-move"
         @pointerdown="onMovePointerDown"
       />
       <text
-        v-if="showLabel"
+        v-if="label"
         :x="vehicle.cx"
         :y="vehicle.cy"
         :font-size="labelFontSize('Auto', Math.max(vehicle.w, vehicle.d), Math.min(vehicle.w, vehicle.d)) * 0.7"
@@ -186,15 +185,14 @@ function onRotatePointerDown(e: PointerEvent) {
       </template>
     </g>
     <template v-if="selected">
-      <line :x1="0" :y1="-d / 2" :x2="0" :y2="-d / 2 - handleOffset" :class="cls.handle" stroke-width="2" vector-effect="non-scaling-stroke" />
+      <line :x1="0" :y1="-d / 2" :x2="0" :y2="-d / 2 - handleOffset" :class="cls.handle" :stroke-width="2 / scale" />
       <circle
         :cx="0"
         :cy="-d / 2 - handleOffset"
         :r="handleRadius"
         class="cursor-grab fill-white"
         :class="cls.handle"
-        stroke-width="2"
-        vector-effect="non-scaling-stroke"
+        :stroke-width="2 / scale"
         @pointerdown="onRotatePointerDown"
       />
     </template>

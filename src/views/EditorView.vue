@@ -2,7 +2,10 @@
 import { computed, onBeforeUnmount, onMounted, ref, toRef } from 'vue'
 import { useRouter } from 'vue-router'
 import MapCanvas from '../components/MapCanvas.vue'
+import MapLegend from '../components/MapLegend.vue'
 import SelectionOverlay from '../components/SelectionOverlay.vue'
+import { standNumbers } from '../numbering'
+import type { ViewBox } from '../composables/useViewport'
 import StandList from '../components/StandList.vue'
 import { normalizeAngle, pxPerMeter } from '../geometry'
 import { newStand, type Placement, type Point, type VehicleSide } from '../model'
@@ -24,6 +27,23 @@ const map = ref<InstanceType<typeof MapCanvas>>()
 const selectedId = ref<string | null>(null)
 const hoveredId = ref<string | null>(null)
 const selectedStand = computed(() => project.value?.stands.find((s) => s.id === selectedId.value) ?? null)
+
+const placedStands = computed(() => project.value?.stands.filter((s) => s.placement) ?? [])
+
+// stands whose center lies within the given viewBox (legend only lists what is currently visible / printed)
+function visibleStands(vb: ViewBox) {
+  return placedStands.value.filter((s) => {
+    const p = s.placement!
+    return p.x >= vb.x && p.x <= vb.x + vb.w && p.y >= vb.y && p.y <= vb.y + vb.h
+  })
+}
+const numbers = computed(() => standNumbers(project.value?.stands ?? []))
+// what the map prints inside each stand, depending on the label mode
+const labels = computed(() => {
+  const p = project.value
+  if (!p) return new Map<string, string>()
+  return p.labelMode === 'numbers' ? numbers.value : new Map(p.stands.map((s) => [s.id, s.name]))
+})
 
 function stand(id: string) {
   return project.value?.stands.find((s) => s.id === id)
@@ -114,15 +134,16 @@ function onKey(e: KeyboardEvent) {
   else return
   e.preventDefault()
 }
-// print layout: whole map, no selection/handles, page orientation matching the image
+// print layout: the currently visible map area, no selection/handles, page orientation matching that area
 const printing = ref(false)
 let pageStyle: HTMLStyleElement | undefined
 function onBeforePrint() {
   printing.value = true
-  const img = project.value?.image
-  if (img && !pageStyle) {
+  // print the currently visible area; orient the page like that area
+  const vb = map.value?.viewBox
+  if (vb && !pageStyle) {
     pageStyle = document.createElement('style')
-    pageStyle.textContent = `@page { size: ${img.width >= img.height ? 'landscape' : 'portrait'}; margin: 1cm; }`
+    pageStyle.textContent = `@page { size: ${vb.w >= vb.h ? 'landscape' : 'portrait'}; margin: 1cm; }`
     document.head.appendChild(pageStyle)
   }
 }
@@ -155,10 +176,10 @@ onBeforeUnmount(() => {
       <header class="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center gap-3 p-3 print:hidden">
         <RouterLink to="/" class="pointer-events-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white">← Projekte</RouterLink>
         <h1 class="pointer-events-auto rounded bg-white/90 px-3 py-1 font-semibold shadow">{{ project.name }}</h1>
-        <label class="pointer-events-auto ml-auto flex items-center gap-2 rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white">
-          <input v-model="project.showLabels" type="checkbox" class="accent-sky-600" />
-          Namen anzeigen
-        </label>
+        <div class="pointer-events-auto ml-auto flex overflow-hidden rounded bg-white/90 text-sm shadow">
+          <button type="button" class="px-3 py-1" :class="project.labelMode === 'names' ? 'bg-sky-600 text-white' : 'hover:bg-white'" @click="project.labelMode = 'names'">Namen</button>
+          <button type="button" class="px-3 py-1" :class="project.labelMode === 'numbers' ? 'bg-sky-600 text-white' : 'hover:bg-white'" @click="project.labelMode = 'numbers'">Nummern</button>
+        </div>
         <button type="button" class="pointer-events-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white" @click="map?.fit()">Einpassen</button>
         <button type="button" class="pointer-events-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white" @click="onExport">Exportieren</button>
         <button type="button" class="pointer-events-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white" @click="print()">Drucken</button>
@@ -171,15 +192,26 @@ onBeforeUnmount(() => {
         :px-per-meter="ppm"
         :selected-id="printing ? null : selectedId"
         :hovered-id="printing ? null : hoveredId"
-        :show-labels="project.showLabels"
-        :fit-all="printing"
+        :labels="labels"
         class="print:min-h-0 print:flex-1"
         @select="selectedId = $event"
         @hover="hoveredId = $event"
         @update:placement="updatePlacement"
         @update:vehicle-side="updateVehicleSide"
         :ghost="ghost"
-      />
+      >
+        <template #overlay="{ scale, toImage, viewBox }">
+          <MapLegend
+            v-if="project.labelMode === 'numbers'"
+            :stands="visibleStands(viewBox)"
+            :numbers="numbers"
+            :position="project.legend ?? { x: project.image.width, y: project.image.height }"
+            :scale="scale"
+            :to-image="toImage"
+            @update:position="project.legend = $event"
+          />
+        </template>
+      </MapCanvas>
       <div
         v-if="drag && !drag.overMap && dragStand"
         class="pointer-events-none fixed z-20 -translate-x-1/2 -translate-y-1/2 rounded bg-white px-2 py-1 text-sm font-medium shadow-lg ring-1 ring-neutral-300"
@@ -194,6 +226,7 @@ onBeforeUnmount(() => {
       :project="project"
       :selected-id="selectedId"
       :hovered-id="hoveredId"
+      :numbers="project.labelMode === 'numbers' ? numbers : null"
       @select="selectedId = $event"
       @hover="hoveredId = $event"
       @drag="onDrag"

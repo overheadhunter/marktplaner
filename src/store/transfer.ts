@@ -1,5 +1,6 @@
 import { newId, type Project } from '../model'
 import { loadImage, saveImage } from './images'
+import { normalizeProject } from './serialization'
 import { encodeTransfer, parseTransfer, transferFileName } from './transferFormat'
 
 /** Serializes a project and its stored image into a `.marktplan` file and triggers a browser download. */
@@ -21,7 +22,7 @@ export async function importProject(file: File): Promise<Project> {
   const { project, image } = parseTransfer(await file.text())
   const id = newId()
   await saveImage(id, base64ToBlob(image.base64, image.type))
-  return { ...project, id, image: { ...project.image, type: image.type } }
+  return normalizeProject({ ...project, id, image: { ...project.image, type: image.type } })
 }
 
 function blobToBase64(blob: Blob): Promise<string> {

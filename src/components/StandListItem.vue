@@ -6,7 +6,13 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { UTILITIES, activeUtilities } from '../utilities'
 import type { Utilities } from '../model'
 
-const props = defineProps<{ stand: Stand; selected: boolean; hovered: boolean }>()
+const props = defineProps<{
+  stand: Stand
+  selected: boolean
+  hovered: boolean
+  /** effective number shown in the color indicator (numbers mode only) */
+  number?: string
+}>()
 const emit = defineEmits<{
   select: []
   hover: [hovering: boolean]
@@ -85,7 +91,15 @@ function setVehicle(key: 'width' | 'depth', e: Event) {
     @mouseleave="emit('hover', false)"
   >
     <div class="flex items-center gap-2">
-      <span class="size-3 shrink-0 rounded-full" :class="standClasses(stand.color ?? DEFAULT_COLOR, false).swatch" />
+      <span
+        v-if="number !== undefined"
+        class="flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
+        :class="standClasses(stand.color ?? DEFAULT_COLOR, false).swatch"
+        :title="`Standnummer ${number}`"
+      >
+        {{ number }}
+      </span>
+      <span v-else class="size-3 shrink-0 rounded-full" :class="standClasses(stand.color ?? DEFAULT_COLOR, false).swatch" />
       <input
         v-model.trim="stand.name"
         type="text"
@@ -114,6 +128,16 @@ function setVehicle(key: 'width' | 'depth', e: Event) {
         placeholder="Notizen"
         class="mt-2 w-full resize-y rounded border border-neutral-200 bg-white px-2 py-1 text-sm focus:border-sky-500 focus:outline-none"
       />
+
+      <label class="mt-2 flex items-center gap-1 text-sm">
+        <span class="mr-1 text-neutral-500">Standnummer:</span>
+        <input
+          v-model.trim="stand.number"
+          type="text"
+          :placeholder="number !== undefined ? `automatisch (${number})` : 'automatisch'"
+          class="w-36 rounded border border-neutral-200 bg-white px-1 py-0.5"
+        />
+      </label>
 
       <div class="mt-2 flex items-center gap-1.5 text-sm">
         <span class="mr-1 text-neutral-500">Farbe:</span>

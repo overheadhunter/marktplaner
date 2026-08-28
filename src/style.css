@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* keep colored backgrounds (legend badges, color dots) when printing */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
 /* Stand colors are composed at runtime (see src/colors.ts), so safelist every variant that standClasses() can produce. */
 @source inline("{fill,stroke,bg}-{red,orange,yellow,lime,green,teal,cyan,blue,violet,fuchsia,rose}-{500,600,700,800}");
 @source inline("fill-{red,orange,yellow,lime,green,teal,cyan,blue,violet,fuchsia,rose}-{200/40,300/40,400/40,500/60}");

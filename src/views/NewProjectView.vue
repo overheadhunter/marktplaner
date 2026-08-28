@@ -49,7 +49,7 @@ async function create() {
     createdAt: new Date().toISOString(),
     image: { ...imageSize.value, type: file.value.type },
     reference: { a: calibration.value.a!, b: calibration.value.b!, meters: meters.value },
-    showLabels: true,
+    labelMode: 'names',
     stands: [],
   }
   add(project)

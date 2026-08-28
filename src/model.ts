@@ -47,6 +47,8 @@ export interface Stand {
   color?: StandColor
   /** Required utilities; absent keys mean "not required". */
   utilities?: Partial<Utilities>
+  /** Explicit stand number ("Standnummer"); empty/absent stands are auto-numbered, see `standNumbers()`. */
+  number?: string
 }
 
 /** Two reference points on the image and their real-world distance in meters. */
@@ -56,13 +58,18 @@ export interface Reference {
   meters: number
 }
 
+/** What the map prints inside each stand: its name, or its (auto-)number with a legend. */
+export type LabelMode = 'names' | 'numbers'
+
 export interface Project {
   id: string
   name: string
   createdAt: string
   image: { width: number; height: number; type: string }
   reference: Reference
-  showLabels: boolean
+  labelMode: LabelMode
+  /** Bottom-right corner of the legend in image px; defaults to the image's bottom-right corner. */
+  legend?: Point
   stands: Stand[]
 }
 

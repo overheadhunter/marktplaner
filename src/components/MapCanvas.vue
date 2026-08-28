@@ -14,18 +14,17 @@ const props = withDefaults(
     imageUrl?: string
     imageSize: { width: number; height: number }
     mode?: 'edit' | 'calibrate'
-    /** show the whole image regardless of the current pan/zoom (used for printing) */
-    fitAll?: boolean
     stands?: Stand[]
     pxPerMeter?: number
     selectedId?: string | null
     hoveredId?: string | null
-    showLabels?: boolean
+    /** stand id → text printed inside the stand; stands without an entry get no label */
+    labels?: Map<string, string>
     calibration?: Calibration
     /** stand being dragged in from the list, rendered translucently at the given client position */
     ghost?: { stand: Stand; clientX: number; clientY: number } | null
   }>(),
-  { mode: 'edit', stands: () => [], pxPerMeter: 1, selectedId: null, hoveredId: null, showLabels: true, calibration: () => ({}), ghost: null },
+  { mode: 'edit', stands: () => [], pxPerMeter: 1, selectedId: null, hoveredId: null, labels: () => new Map(), calibration: () => ({}), ghost: null },
 )
 
 const emit = defineEmits<{
@@ -40,6 +39,9 @@ const svg = ref<SVGSVGElement>()
 const viewport = useViewport(svg)
 
 const placedStands = computed(() => props.stands.filter((s): s is Stand & { placement: Placement } => s.placement !== null))
+
+// screen px per image px (printing keeps the current viewBox, so strokes/handles sized by this also print in proportion)
+const scale = computed(() => viewport.scale.value)
 
 const ghostStand = computed<(Stand & { placement: Placement }) | null>(() => {
   const g = props.ghost
@@ -120,14 +122,14 @@ function onMarkerPointerDown(e: PointerEvent, which: 'a' | 'b') {
   el.addEventListener('pointercancel', onUp)
 }
 
-defineExpose({ center: viewport.center, fit: () => viewport.fit(props.imageSize.width, props.imageSize.height), clientToImage: viewport.clientToImage, containsClient })
+defineExpose({ center: viewport.center, fit: () => viewport.fit(props.imageSize.width, props.imageSize.height), clientToImage: viewport.clientToImage, containsClient, viewBox: viewport.viewBox })
 </script>
 
 <template>
   <svg
     ref="svg"
     class="h-full w-full touch-none bg-neutral-200 print:bg-white"
-    :viewBox="fitAll ? `0 0 ${imageSize.width} ${imageSize.height}` : viewport.viewBoxString.value"
+    :viewBox="viewport.viewBoxString.value"
     @wheel.prevent="onWheel"
     @pointerdown="onBackgroundPointerDown"
   >
@@ -140,10 +142,10 @@ defineExpose({ center: viewport.center, fit: () => viewport.fit(props.imageSize.
         :key="s.id"
         :stand="s"
         :px-per-meter="pxPerMeter"
-        :scale="viewport.scale.value"
+        :scale="scale"
         :selected="s.id === selectedId"
         :hovered="s.id === hoveredId"
-        :show-label="showLabels"
+        :label="labels.get(s.id)"
         :to-image="viewport.clientToImage"
         @select="emit('select', $event)"
         @hover="emit('hover', $event)"
@@ -154,13 +156,15 @@ defineExpose({ center: viewport.center, fit: () => viewport.fit(props.imageSize.
         v-if="ghostStand"
         :stand="ghostStand"
         :px-per-meter="pxPerMeter"
-        :scale="viewport.scale.value"
+        :scale="scale"
         :selected="false"
         :hovered="true"
-        :show-label="showLabels"
+        :label="labels.get(ghostStand.id)"
         :to-image="viewport.clientToImage"
         class="pointer-events-none opacity-60"
       />
+      <!-- extra SVG content positioned in image coordinates, e.g. the legend -->
+      <slot name="overlay" :scale="scale" :to-image="viewport.clientToImage" :view-box="viewport.viewBox" />
     </template>
 
     <template v-else>

@@ -5,7 +5,13 @@ import { faChevronDown, faMagnifyingGlass, faXmark } from '@fortawesome/free-sol
 import type { Project } from '../model'
 import StandListItem from './StandListItem.vue'
 
-const props = defineProps<{ project: Project; selectedId: string | null; hoveredId: string | null }>()
+const props = defineProps<{
+  project: Project
+  selectedId: string | null
+  hoveredId: string | null
+  /** effective stand numbers to show in the color indicators, or null in names mode */
+  numbers: Map<string, string> | null
+}>()
 const emit = defineEmits<{
   select: [id: string | null]
   hover: [id: string | null]
@@ -100,6 +106,7 @@ onBeforeUnmount(() => {
         :stand="s"
         :selected="s.id === selectedId"
         :hovered="s.id === hoveredId"
+        :number="numbers?.get(s.id)"
         @select="emit('select', s.id)"
         @hover="emit('hover', $event ? s.id : null)"
         @drag="emit('drag', s.id, $event)"

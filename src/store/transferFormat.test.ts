@@ -8,7 +8,7 @@ const project: Project = {
   createdAt: '2026-08-28T00:00:00.000Z',
   image: { width: 100, height: 50, type: 'image/png' },
   reference: { a: { x: 0, y: 0 }, b: { x: 10, y: 0 }, meters: 1 },
-  showLabels: true,
+  labelMode: 'names',
   stands: [{ id: 's', name: 'A', notes: '', width: 3, depth: 2, placement: null, color: 'teal' }],
 }
 
