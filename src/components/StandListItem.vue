@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { newVehicle, type Stand } from '../model'
+import { COLOR_LABELS, DEFAULT_COLOR, STAND_COLORS, standClasses } from '../colors'
 
 const props = defineProps<{ stand: Stand; selected: boolean }>()
 const emit = defineEmits<{
@@ -50,6 +51,7 @@ function setVehicle(key: 'width' | 'depth', e: Event) {
     @dragstart="onDragStart"
   >
     <div class="flex items-center gap-2">
+      <span class="size-3 shrink-0 rounded-full" :class="standClasses(stand.color ?? DEFAULT_COLOR, false).swatch" />
       <input
         v-model.trim="stand.name"
         type="text"
@@ -80,6 +82,19 @@ function setVehicle(key: 'width' | 'depth', e: Event) {
         placeholder="Notizen"
         class="mt-2 w-full resize-y rounded border border-neutral-200 bg-white px-2 py-1 text-sm focus:border-sky-500 focus:outline-none"
       />
+
+      <div class="mt-2 flex items-center gap-1.5 text-sm">
+        <span class="mr-1 text-neutral-500">Farbe:</span>
+        <button
+          v-for="c in STAND_COLORS"
+          :key="c"
+          type="button"
+          :title="COLOR_LABELS[c]"
+          class="size-5 rounded-full border-2 transition-transform hover:scale-110"
+          :class="[standClasses(c, false).swatch, (stand.color ?? DEFAULT_COLOR) === c ? 'border-neutral-800 ring-2 ring-white ring-inset' : 'border-transparent']"
+          @click.stop="stand.color = c"
+        />
+      </div>
 
       <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
         <div class="flex items-center gap-1">

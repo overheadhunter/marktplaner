@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { labelAngle, labelFontSize, snapAngle, normalizeAngle, vehicleOffset } from '../geometry'
 import { VEHICLE_GAP, type Placement, type Point, type Stand, type VehicleSide } from '../model'
+import { DEFAULT_COLOR, standClasses } from '../colors'
 
 const props = defineProps<{
   stand: Stand & { placement: Placement }
@@ -18,6 +19,8 @@ const emit = defineEmits<{
   'update:placement': [id: string, placement: Placement]
   'update:vehicle-side': [id: string, side: VehicleSide]
 }>()
+
+const cls = computed(() => standClasses(props.stand.color ?? DEFAULT_COLOR, props.selected))
 
 const w = computed(() => props.stand.width * props.pxPerMeter)
 const d = computed(() => props.stand.depth * props.pxPerMeter)
@@ -110,7 +113,7 @@ function onRotatePointerDown(e: PointerEvent) {
       :y="-d / 2"
       :width="w"
       :height="d"
-      :class="selected ? 'fill-sky-500/50 stroke-sky-700' : 'fill-amber-400/50 stroke-amber-700'"
+      :class="[cls.fill, cls.stroke]"
       :stroke-width="selected ? 3 : 2"
       vector-effect="non-scaling-stroke"
       class="cursor-move"
@@ -130,7 +133,7 @@ function onRotatePointerDown(e: PointerEvent) {
         :y="vehicle.cy - vehicle.d / 2"
         :width="vehicle.w"
         :height="vehicle.d"
-        :class="selected ? 'fill-sky-300/40 stroke-sky-700' : 'fill-neutral-400/40 stroke-neutral-600'"
+        :class="[cls.vehicleFill, cls.vehicleStroke]"
         stroke-width="2"
         stroke-dasharray="6 4"
         vector-effect="non-scaling-stroke"
@@ -152,19 +155,21 @@ function onRotatePointerDown(e: PointerEvent) {
           :key="a.side"
           :points="arrowPoints"
           :transform="`translate(${a.x} ${a.y}) rotate(${a.rotate})`"
-          class="cursor-pointer fill-sky-700 hover:fill-sky-500"
+          class="cursor-pointer"
+          :class="cls.arrow"
           @pointerdown.stop
           @click.stop="emit('update:vehicle-side', stand.id, a.side)"
         />
       </template>
     </g>
     <template v-if="selected">
-      <line :x1="0" :y1="-d / 2" :x2="0" :y2="-d / 2 - handleOffset" class="stroke-sky-700" stroke-width="2" vector-effect="non-scaling-stroke" />
+      <line :x1="0" :y1="-d / 2" :x2="0" :y2="-d / 2 - handleOffset" :class="cls.handle" stroke-width="2" vector-effect="non-scaling-stroke" />
       <circle
         :cx="0"
         :cy="-d / 2 - handleOffset"
         :r="handleRadius"
-        class="cursor-grab fill-white stroke-sky-700"
+        class="cursor-grab fill-white"
+        :class="cls.handle"
         stroke-width="2"
         vector-effect="non-scaling-stroke"
         @pointerdown="onRotatePointerDown"

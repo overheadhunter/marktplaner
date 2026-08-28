@@ -1,3 +1,5 @@
+import type { StandColor } from './colors'
+
 /** Point in image pixel coordinates. */
 export interface Point {
   x: number
@@ -34,6 +36,8 @@ export interface Stand {
   depth: number
   placement: Placement | null
   vehicle?: Vehicle
+  /** Color-code for the stand, defaults to `DEFAULT_COLOR` when absent. */
+  color?: StandColor
 }
 
 /** Two reference points on the image and their real-world distance in meters. */
