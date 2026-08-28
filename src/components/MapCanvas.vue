@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useViewport } from '../composables/useViewport'
-import type { Placement, Point, Stand } from '../model'
+import type { Placement, Point, Stand, VehicleSide } from '../model'
 import StandShape from './StandShape.vue'
 
 export interface Calibration {
@@ -26,6 +26,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   select: [id: string | null]
   'update:placement': [id: string, placement: Placement]
+  'update:vehicle-side': [id: string, side: VehicleSide]
   'drop-stand': [id: string, at: Point]
   'update:calibration': [calibration: Calibration]
 }>()
@@ -135,6 +136,7 @@ defineExpose({ center: viewport.center, fit: () => viewport.fit(props.imageSize.
         :to-image="viewport.clientToImage"
         @select="emit('select', $event)"
         @update:placement="(id, p) => emit('update:placement', id, p)"
+        @update:vehicle-side="(id, side) => emit('update:vehicle-side', id, side)"
       />
     </template>
 

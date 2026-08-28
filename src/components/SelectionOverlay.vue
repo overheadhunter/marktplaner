@@ -11,7 +11,10 @@ const emit = defineEmits<{ close: []; place: []; unplace: [] }>()
       <div class="flex items-start gap-3">
         <div class="min-w-0 flex-1">
           <h3 class="truncate text-lg font-semibold">{{ stand.name || 'Unbenannt' }}</h3>
-          <p class="text-xs text-neutral-500">{{ stand.width.toFixed(2) }} m × {{ stand.depth.toFixed(2) }} m</p>
+          <p class="text-xs text-neutral-500">
+            {{ stand.width.toFixed(2) }} m × {{ stand.depth.toFixed(2) }} m
+            <template v-if="stand.vehicle?.enabled">· Auto {{ stand.vehicle.width.toFixed(2) }} m × {{ stand.vehicle.depth.toFixed(2) }} m</template>
+          </p>
           <p v-if="stand.notes" class="mt-2 text-sm whitespace-pre-wrap text-neutral-700">{{ stand.notes }}</p>
           <p v-else class="mt-2 text-sm text-neutral-400 italic">Keine Notizen</p>
         </div>

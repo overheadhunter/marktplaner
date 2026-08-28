@@ -1,4 +1,4 @@
-import type { Point, Reference } from './model'
+import type { Point, Reference, VehicleSide } from './model'
 
 export function distance(a: Point, b: Point): number {
   return Math.hypot(b.x - a.x, b.y - a.y)
@@ -36,6 +36,26 @@ export function labelAngle(angle: number, width: number, depth: number): number 
   // map into (-90, 90]
   const n = normalizeAngle(base)
   return n > 90 && n <= 270 ? n - 180 : n > 270 ? n - 360 : n
+}
+
+/**
+ * Center of a vehicle rect relative to the stand center, in the stand's local (un-rotated) frame where negative y is "top".
+ *
+ * @param stand stand size
+ * @param vehicle vehicle size
+ * @param side side of the stand the vehicle is parked on
+ * @param gap distance between stand and vehicle edges
+ * @return offset in the same unit as the inputs
+ */
+export function vehicleOffset(stand: { width: number; depth: number }, vehicle: { width: number; depth: number }, side: VehicleSide, gap: number): Point {
+  switch (side) {
+    case 'bottom':
+      return { x: 0, y: stand.depth / 2 + gap + vehicle.depth / 2 }
+    case 'left':
+      return { x: -(stand.width / 2 + gap + vehicle.width / 2), y: 0 }
+    case 'right':
+      return { x: stand.width / 2 + gap + vehicle.width / 2, y: 0 }
+  }
 }
 
 /** Font size (in image px) that fits `name` into a box of the given side lengths. */

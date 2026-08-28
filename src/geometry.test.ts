@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { distance, formatMeters, labelAngle, labelFontSize, normalizeAngle, pxPerMeter, snapAngle } from './geometry'
+import { distance, formatMeters, labelAngle, labelFontSize, normalizeAngle, pxPerMeter, snapAngle, vehicleOffset } from './geometry'
 
 describe('geometry', () => {
   it('distance / pxPerMeter', () => {
@@ -33,6 +33,14 @@ describe('geometry', () => {
       expect(l).toBeGreaterThan(-90)
       expect(l).toBeLessThanOrEqual(90)
     }
+  })
+
+  it('vehicleOffset keeps a gap on the chosen side', () => {
+    const stand = { width: 3, depth: 2 }
+    const car = { width: 5, depth: 2 }
+    expect(vehicleOffset(stand, car, 'bottom', 1)).toEqual({ x: 0, y: 3 })
+    expect(vehicleOffset(stand, car, 'left', 1)).toEqual({ x: -5, y: 0 })
+    expect(vehicleOffset(stand, car, 'right', 1)).toEqual({ x: 5, y: 0 })
   })
 
   it('labelFontSize fits the box', () => {

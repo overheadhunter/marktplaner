@@ -5,7 +5,7 @@ import MapCanvas from '../components/MapCanvas.vue'
 import SelectionOverlay from '../components/SelectionOverlay.vue'
 import StandList from '../components/StandList.vue'
 import { normalizeAngle, pxPerMeter } from '../geometry'
-import { newStand, type Placement, type Point } from '../model'
+import { newStand, type Placement, type Point, type VehicleSide } from '../model'
 import { useImageUrl } from '../store/images'
 import { useProjects } from '../store/projects'
 
@@ -42,6 +42,11 @@ function placeAt(id: string, at: Point) {
 
 function place(id: string) {
   placeAt(id, map.value?.center() ?? { x: 0, y: 0 })
+}
+
+function updateVehicleSide(id: string, side: VehicleSide) {
+  const s = stand(id)
+  if (s?.vehicle) s.vehicle.side = side
 }
 
 function unplace(id: string) {
@@ -100,6 +105,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         :show-labels="project.showLabels"
         @select="selectedId = $event"
         @update:placement="updatePlacement"
+        @update:vehicle-side="updateVehicleSide"
         @drop-stand="placeAt"
       />
       <SelectionOverlay v-if="selectedStand" :stand="selectedStand" @close="selectedId = null" @place="place(selectedStand.id)" @unplace="unplace(selectedStand.id)" />

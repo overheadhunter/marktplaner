@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { Stand } from '../model'
+import { newVehicle, type Stand } from '../model'
 
 const props = defineProps<{ stand: Stand; selected: boolean }>()
 const emit = defineEmits<{
@@ -26,6 +26,17 @@ function onDragStart(e: DragEvent) {
 function num(e: Event): number {
   const v = Number.parseFloat((e.target as HTMLInputElement).value)
   return Number.isFinite(v) && v > 0 ? v : 0.01
+}
+
+function toggleVehicle(e: Event) {
+  const enabled = (e.target as HTMLInputElement).checked
+  if (props.stand.vehicle) props.stand.vehicle.enabled = enabled
+  else props.stand.vehicle = { ...newVehicle(), enabled }
+}
+
+function setVehicle(key: 'width' | 'depth', e: Event) {
+  props.stand.vehicle ??= { ...newVehicle(), enabled: false }
+  props.stand.vehicle[key] = num(e)
 }
 </script>
 
@@ -70,12 +81,24 @@ function num(e: Event): number {
         class="mt-2 w-full resize-y rounded border border-neutral-200 bg-white px-2 py-1 text-sm focus:border-sky-500 focus:outline-none"
       />
 
-      <div class="mt-2 flex items-center gap-1 text-sm">
-        <span class="mr-1 text-neutral-500">Standgröße:</span>
-        <input :value="stand.width" type="number" min="0.01" step="0.01" title="Breite" class="w-20 rounded border border-neutral-200 bg-white px-1 py-0.5 text-right" @change="stand.width = num($event)" />
-        <span class="text-neutral-400">×</span>
-        <input :value="stand.depth" type="number" min="0.01" step="0.01" title="Tiefe" class="w-20 rounded border border-neutral-200 bg-white px-1 py-0.5 text-right" @change="stand.depth = num($event)" />
-        <span class="text-neutral-500">m</span>
+      <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+        <div class="flex items-center gap-1">
+          <span class="mr-1 text-neutral-500">Standgröße:</span>
+          <input :value="stand.width" type="number" min="0.01" step="0.01" title="Breite" class="w-20 rounded border border-neutral-200 bg-white px-1 py-0.5 text-right" @change="stand.width = num($event)" />
+          <span class="text-neutral-400">×</span>
+          <input :value="stand.depth" type="number" min="0.01" step="0.01" title="Tiefe" class="w-20 rounded border border-neutral-200 bg-white px-1 py-0.5 text-right" @change="stand.depth = num($event)" />
+          <span class="text-neutral-500">m</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <label class="mr-1 flex items-center gap-1 text-neutral-500">
+            <input type="checkbox" :checked="stand.vehicle?.enabled ?? false" class="accent-sky-600" @change="toggleVehicle" />
+            Auto:
+          </label>
+          <input :value="stand.vehicle?.width ?? 5" :disabled="!stand.vehicle?.enabled" type="number" min="0.01" step="0.01" title="Breite" class="w-20 rounded border border-neutral-200 bg-white px-1 py-0.5 text-right disabled:bg-neutral-100 disabled:text-neutral-400" @change="setVehicle('width', $event)" />
+          <span class="text-neutral-400">×</span>
+          <input :value="stand.vehicle?.depth ?? 2" :disabled="!stand.vehicle?.enabled" type="number" min="0.01" step="0.01" title="Tiefe" class="w-20 rounded border border-neutral-200 bg-white px-1 py-0.5 text-right disabled:bg-neutral-100 disabled:text-neutral-400" @change="setVehicle('depth', $event)" />
+          <span class="text-neutral-500">m</span>
+        </div>
       </div>
       <div v-if="!stand.placement" class="mt-2 flex text-sm">
         <button type="button" class="rounded bg-sky-600 px-3 py-1 text-white hover:bg-sky-700" @click.stop="emit('place')">Platzieren</button>
