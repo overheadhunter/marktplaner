@@ -3,6 +3,8 @@ import { computed } from 'vue'
 import { labelAngle, labelFontSize, snapAngle, normalizeAngle, vehicleOffset } from '../geometry'
 import { VEHICLE_GAP, type Placement, type Point, type Stand, type VehicleSide } from '../model'
 import { DEFAULT_COLOR, standClasses } from '../colors'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { activeUtilities } from '../utilities'
 
 const props = defineProps<{
   stand: Stand & { placement: Placement }
@@ -56,6 +58,13 @@ const transform = computed(() => `translate(${props.stand.placement.x} ${props.s
 // label rotation relative to the already rotated group
 const labelRotation = computed(() => labelAngle(props.stand.placement.angle, props.stand.width, props.stand.depth) - props.stand.placement.angle)
 const fontSize = computed(() => labelFontSize(props.stand.name, Math.max(w.value, d.value), Math.min(w.value, d.value)))
+
+// utility icons in the rect's top-left corner: constant on-screen size, but never larger than ~40% of the shorter side
+const utilityIcons = computed(() => {
+  const size = Math.min(16 / props.scale, Math.min(w.value, d.value) * 0.4)
+  const pad = size * 0.25
+  return activeUtilities(props.stand).map((u, i) => ({ ...u, size, x: -w.value / 2 + pad + i * (size + pad), y: -d.value / 2 + pad }))
+})
 
 const handleOffset = computed(() => 28 / props.scale)
 const handleRadius = computed(() => 8 / props.scale)
@@ -127,6 +136,17 @@ function onRotatePointerDown(e: PointerEvent) {
       dominant-baseline="central"
       class="pointer-events-none fill-black"
     >{{ stand.name }}</text>
+    <FontAwesomeIcon
+      v-for="u in utilityIcons"
+      :key="u.key"
+      :icon="u.icon"
+      :x="u.x"
+      :y="u.y"
+      :width="u.size"
+      :height="u.size"
+      class="pointer-events-none"
+      :class="u.cls"
+    />
     <g v-if="vehicle">
       <rect
         :x="vehicle.cx - vehicle.w / 2"

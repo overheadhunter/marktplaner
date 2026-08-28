@@ -2,6 +2,9 @@
 import { ref, watch } from 'vue'
 import { newVehicle, type Stand } from '../model'
 import { COLOR_LABELS, DEFAULT_COLOR, STAND_COLORS, standClasses } from '../colors'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { UTILITIES, activeUtilities } from '../utilities'
+import type { Utilities } from '../model'
 
 const props = defineProps<{ stand: Stand; selected: boolean }>()
 const emit = defineEmits<{
@@ -35,6 +38,11 @@ function toggleVehicle(e: Event) {
   else props.stand.vehicle = { ...newVehicle(), enabled }
 }
 
+function setUtility(key: keyof Utilities, e: Event) {
+  props.stand.utilities ??= {}
+  props.stand.utilities[key] = (e.target as HTMLInputElement).checked
+}
+
 function setVehicle(key: 'width' | 'depth', e: Event) {
   props.stand.vehicle ??= { ...newVehicle(), enabled: false }
   props.stand.vehicle[key] = num(e)
@@ -63,6 +71,9 @@ function setVehicle(key: 'width' | 'depth', e: Event) {
         :class="stand.placement ? 'bg-emerald-100 text-emerald-800' : 'bg-neutral-100 text-neutral-500'"
       >
         {{ stand.placement ? 'platziert' : 'nicht platziert' }}
+      </span>
+      <span v-if="activeUtilities(stand).length" class="flex shrink-0 items-center gap-1">
+        <FontAwesomeIcon v-for="u in activeUtilities(stand)" :key="u.key" :icon="u.icon" :title="u.label" class="size-3" :class="u.cls" />
       </span>
       <button
         v-if="selected"
@@ -114,6 +125,13 @@ function setVehicle(key: 'width' | 'depth', e: Event) {
           <input :value="stand.vehicle?.depth ?? 2" :disabled="!stand.vehicle?.enabled" type="number" min="0.01" step="0.01" title="Tiefe" class="w-20 rounded border border-neutral-200 bg-white px-1 py-0.5 text-right disabled:bg-neutral-100 disabled:text-neutral-400" @change="setVehicle('depth', $event)" />
           <span class="text-neutral-500">m</span>
         </div>
+      </div>
+      <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+        <label v-for="u in UTILITIES" :key="u.key" class="flex items-center gap-1.5 text-neutral-700">
+          <input type="checkbox" :checked="stand.utilities?.[u.key] ?? false" class="accent-sky-600" @change="setUtility(u.key, $event)" />
+          <FontAwesomeIcon :icon="u.icon" class="size-3.5" :class="u.cls" />
+          {{ u.label }}
+        </label>
       </div>
       <div v-if="!stand.placement" class="mt-2 flex text-sm">
         <button type="button" class="rounded bg-sky-600 px-3 py-1 text-white hover:bg-sky-700" @click.stop="emit('place')">Platzieren</button>

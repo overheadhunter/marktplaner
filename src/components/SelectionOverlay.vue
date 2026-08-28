@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Stand } from '../model'
 import { DEFAULT_COLOR, standClasses } from '../colors'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { activeUtilities } from '../utilities'
 
 defineProps<{ stand: Stand }>()
 const emit = defineEmits<{ close: []; place: []; unplace: [] }>()
@@ -18,6 +20,9 @@ const emit = defineEmits<{ close: []; place: []; unplace: [] }>()
           <p class="text-xs text-neutral-500">
             {{ stand.width.toFixed(2) }} m × {{ stand.depth.toFixed(2) }} m
             <template v-if="stand.vehicle?.enabled">· Auto {{ stand.vehicle.width.toFixed(2) }} m × {{ stand.vehicle.depth.toFixed(2) }} m</template>
+            <template v-for="u in activeUtilities(stand)" :key="u.key">
+              · <FontAwesomeIcon :icon="u.icon" class="inline size-3" :class="u.cls" /> {{ u.label }}
+            </template>
           </p>
           <p v-if="stand.notes" class="mt-2 text-sm whitespace-pre-wrap text-neutral-700">{{ stand.notes }}</p>
           <p v-else class="mt-2 text-sm text-neutral-400 italic">Keine Notizen</p>

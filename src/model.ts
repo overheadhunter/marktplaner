@@ -27,6 +27,13 @@ export interface Vehicle {
 /** Gap between stand and vehicle in meters. */
 export const VEHICLE_GAP = 1
 
+/** Infrastructure a stand requires at its spot. */
+export interface Utilities {
+  power: boolean
+  freshWater: boolean
+  sewage: boolean
+}
+
 /** A market stand. Dimensions are in meters; `placement` is null while the stand is not on the map. */
 export interface Stand {
   id: string
@@ -38,6 +45,8 @@ export interface Stand {
   vehicle?: Vehicle
   /** Color-code for the stand, defaults to `DEFAULT_COLOR` when absent. */
   color?: StandColor
+  /** Required utilities; absent keys mean "not required". */
+  utilities?: Partial<Utilities>
 }
 
 /** Two reference points on the image and their real-world distance in meters. */
