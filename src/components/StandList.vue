@@ -18,10 +18,6 @@ const emit = defineEmits<{
       <span class="text-sm text-neutral-500">{{ project.stands.length }}</span>
       <button type="button" class="ml-auto rounded bg-sky-600 px-3 py-1 text-sm text-white hover:bg-sky-700" @click="emit('add')">+ Hinzufügen</button>
     </div>
-    <label class="flex items-center gap-2 border-b border-neutral-200 px-4 py-2 text-sm">
-      <input v-model="project.showLabels" type="checkbox" class="accent-sky-600" />
-      Namen auf Karte anzeigen
-    </label>
     <p class="px-4 py-2 text-xs text-neutral-500">Stände auf die Karte ziehen oder „Platzieren“ klicken. Auf der Karte: ziehen zum Verschieben, Griff zum Drehen (⇧ rastet in 15°-Schritten).</p>
     <ul class="min-h-0 flex-1 space-y-1 overflow-y-auto px-4 pb-4">
       <StandListItem

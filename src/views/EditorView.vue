@@ -103,7 +103,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
       <header class="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center gap-3 p-3">
         <RouterLink to="/" class="pointer-events-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white">← Projekte</RouterLink>
         <h1 class="pointer-events-auto rounded bg-white/90 px-3 py-1 font-semibold shadow">{{ project.name }}</h1>
-        <button type="button" class="pointer-events-auto ml-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white" @click="map?.fit()">Einpassen</button>
+        <label class="pointer-events-auto ml-auto flex items-center gap-2 rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white">
+          <input v-model="project.showLabels" type="checkbox" class="accent-sky-600" />
+          Namen anzeigen
+        </label>
+        <button type="button" class="pointer-events-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white" @click="map?.fit()">Einpassen</button>
         <button type="button" class="pointer-events-auto rounded bg-white/90 px-3 py-1 text-sm shadow hover:bg-white" @click="onExport">Exportieren</button>
       </header>
       <MapCanvas
